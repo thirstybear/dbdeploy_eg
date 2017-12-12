@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="dbdeployExample" basedir=".">
+    <property name="db.driver" value="com.mysql.jdbc.Driver"/>
+    <property name="db.location" value="jdbc:mysql://localhost:3306"/>
+    <property name="db.schema" value="testSchema"/>
+    <property name="db.url" value="${db.location}/${db.schema}"/>
+
+    <path id="mysql.classpath">
+        <fileset dir="lib">
+            <include name="mysql-connector-java-*.jar"/>
+        </fileset>
+    </path>
+
+    <path id="dbdeploy.classpath">
+        <!-- include the dbdeploy-ant jar -->
+        <fileset dir="lib">
+            <include name="dbdeploy-ant-*.jar"/>
+        </fileset>
+
+        <!-- the dbdeploy task also needs the database driver jar on the classpath -->
+        <path refid="mysql.classpath"/>
+    </path>
+
+    <taskdef name="dbdeploy" classname="com.dbdeploy.AntTarget" classpathref="dbdeploy.classpath"/>
+
+    <target name="-nukeDbAndRecreate">
+        <sql driver="${db.driver}" url="${db.location}"
+             userid="root" password="password" classpathref="mysql.classpath">
+            <fileset file="db/scripts/initDB.sql"/>
+        </sql>
+    </target>
+
+    <target name="-createChangelogTable">
+        <sql driver="${db.driver}" url="${db.url}"
+             userid="root" password="password" classpathref="mysql.classpath">
+            <fileset file="db/scripts/createSchemaVersionTable.mysql.sql"/>
+        </sql>
+    </target>
+
+    <target name="populateTestData" depends="bringDbUpToDate" description="Update database and populate with test data">
+        <sql driver="${db.driver}" url="${db.url}"
+             userid="root" password="password" classpathref="mysql.classpath">
+            <fileset file="db/testscripts/populateTestData.sql"/>
+        </sql>
+    </target>
+
+    <target name="resetDB" depends="-nukeDbAndRecreate, -createChangelogTable, bringDbUpToDate" description="Destroys database completely and rebuilds from scratch"/>
+
+    <target name="bringDbUpToDate" description="Updates database to current version">
+        <dbdeploy
+                driver="${db.driver}"
+                url="${db.url}"
+                userid="root"
+                password="password"
+                dir="db/deltas"
+                />
+    </target>
+</project>

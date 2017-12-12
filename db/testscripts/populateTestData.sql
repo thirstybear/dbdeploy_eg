@@ -1,0 +1,1 @@
+insert into skus (name) values("Body double stunt duck");
