@@ -1,7 +1,7 @@
 # Simple DBDeploy example 
 
  * Uses Ant script
- * Uses MySQL 5.x
+ * Targets MySQL 5.x
  * Designed to allow people to look at what DBDeploy does internally to the database
 
 ### Basics
